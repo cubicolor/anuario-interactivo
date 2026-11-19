@@ -52,17 +52,25 @@ function clamp(value, minimum, maximum) {
 }
 
 async function loadPageTurnSound() {
-  if (pageTurnBuffer) return pageTurnBuffer;
-  if (soundLoadingPromise) return soundLoadingPromise;
+  if (pageTurnBuffer) {
+    return pageTurnBuffer;
+  }
+
+  if (soundLoadingPromise) {
+    return soundLoadingPromise;
+  }
 
   soundLoadingPromise = (async () => {
     const response = await fetch(SOUND_URL);
 
     if (!response.ok) {
-      throw new Error(`No se pudo cargar el sonido: ${response.status}`);
+      throw new Error(
+        `No se pudo cargar el sonido: ${response.status}`
+      );
     }
 
     const encodedAudio = await response.arrayBuffer();
+
     const AudioContextClass =
       window.AudioContext || window.webkitAudioContext;
 
@@ -94,7 +102,10 @@ async function unlockPageTurnSound() {
       const AudioContextClass =
         window.AudioContext || window.webkitAudioContext;
 
-      if (!AudioContextClass) return;
+      if (!AudioContextClass) {
+        return;
+      }
+
       audioContext = new AudioContextClass();
     }
 
@@ -118,7 +129,9 @@ async function playPageTurnSound() {
       await loadPageTurnSound();
     }
 
-    if (!audioContext || !pageTurnBuffer) return;
+    if (!audioContext || !pageTurnBuffer) {
+      return;
+    }
 
     if (currentAudioSource) {
       try {
@@ -232,7 +245,10 @@ function setZoom(newZoom) {
 
 async function renderPdfPage(pdf, pageNumber) {
   const page = await pdf.getPage(pageNumber);
-  const viewport = page.getViewport({ scale: RENDER_SCALE });
+
+  const viewport = page.getViewport({
+    scale: RENDER_SCALE
+  });
 
   const pageDiv = document.createElement('div');
   pageDiv.className = 'page';
@@ -250,6 +266,7 @@ async function renderPdfPage(pdf, pageNumber) {
 
   canvas.width = viewport.width;
   canvas.height = viewport.height;
+
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-label', `Página ${pageNumber}`);
 
@@ -260,7 +277,10 @@ async function renderPdfPage(pdf, pageNumber) {
 
   pageDiv.appendChild(canvas);
 
-  return { pageDiv, viewport };
+  return {
+    pageDiv,
+    viewport
+  };
 }
 
 function calculateBookDimensions(pageWidth, pageHeight) {
@@ -288,7 +308,9 @@ function calculateBookDimensions(pageWidth, pageHeight) {
 }
 
 function updateNavigationIndicator() {
-  if (!pageFlip) return;
+  if (!pageFlip) {
+    return;
+  }
 
   const currentPdfIndex = pageFlip.getCurrentPageIndex();
   const currentPdfPage = currentPdfIndex + 1;
@@ -302,14 +324,10 @@ function updateNavigationIndicator() {
     currentPdfIndex >= pageFlip.getPageCount() - 1;
 }
 
-function animatePageChange() {
-  flipbookEl.classList.remove('page-fade-in');
-  void flipbookEl.offsetWidth;
-  flipbookEl.classList.add('page-fade-in');
-}
-
 function handlePageChange() {
-  if (!pageFlip) return;
+  if (!pageFlip) {
+    return;
+  }
 
   const currentIndex = pageFlip.getCurrentPageIndex();
 
@@ -318,24 +336,13 @@ function handlePageChange() {
     playPageTurnSound();
   }
 
-  flipbookEl.classList.remove('page-turning');
-  animatePageChange();
-  updateNavigationIndicator();
-}
-
-function handleChangeState(state) {
-  if (state === 'flipping') {
-    flipbookEl.classList.remove('page-fade-in');
-    flipbookEl.classList.add('page-turning');
-  } else {
-    flipbookEl.classList.remove('page-turning');
-  }
-
   updateNavigationIndicator();
 }
 
 function goToEditorialPage() {
-  if (!pageFlip) return;
+  if (!pageFlip) {
+    return;
+  }
 
   const requestedPage = Number.parseInt(
     pageInputEl.value.trim(),
@@ -384,13 +391,19 @@ function bindControls() {
   );
 
   btnPrev.addEventListener('click', () => {
-    if (btnPrev.disabled) return;
+    if (btnPrev.disabled) {
+      return;
+    }
+
     setZoom(MIN_ZOOM);
     pageFlip.flipPrev();
   });
 
   btnNext.addEventListener('click', () => {
-    if (btnNext.disabled) return;
+    if (btnNext.disabled) {
+      return;
+    }
+
     setZoom(MIN_ZOOM);
     pageFlip.flipNext();
   });
@@ -408,7 +421,9 @@ function bindControls() {
   });
 
   document.addEventListener('keydown', event => {
-    if (document.activeElement === pageInputEl) return;
+    if (document.activeElement === pageInputEl) {
+      return;
+    }
 
     if (event.key === 'ArrowLeft' && !btnPrev.disabled) {
       setZoom(MIN_ZOOM);
@@ -433,19 +448,16 @@ function bindControls() {
     event => {
       event.preventDefault();
 
-      const direction =
-        event.deltaY < 0 ? 1 : -1;
-
-      setZoom(
-        currentZoom +
-        direction * ZOOM_STEP
-      );
+      const direction = event.deltaY < 0 ? 1 : -1;
+      setZoom(currentZoom + direction * ZOOM_STEP);
     },
     { passive: false }
   );
 
   stageEl.addEventListener('pointerdown', event => {
-    if (currentZoom <= MIN_ZOOM) return;
+    if (currentZoom <= MIN_ZOOM) {
+      return;
+    }
 
     isDragging = true;
     dragStartX = event.clientX - panX;
@@ -459,7 +471,9 @@ function bindControls() {
   });
 
   stageEl.addEventListener('pointermove', event => {
-    if (!isDragging) return;
+    if (!isDragging) {
+      return;
+    }
 
     panX = event.clientX - dragStartX;
     panY = event.clientY - dragStartY;
@@ -469,7 +483,9 @@ function bindControls() {
   });
 
   function stopDragging(event) {
-    if (!isDragging) return;
+    if (!isDragging) {
+      return;
+    }
 
     isDragging = false;
     zoomWrapperEl.classList.remove('dragging');
@@ -522,15 +538,11 @@ async function initFlipbook() {
       pageNumber <= totalPdfPages;
       pageNumber++
     ) {
-      const result =
-        await renderPdfPage(pdf, pageNumber);
+      const result = await renderPdfPage(pdf, pageNumber);
 
       if (pageNumber === 1) {
-        pageWidth =
-          result.viewport.width / RENDER_SCALE;
-
-        pageHeight =
-          result.viewport.height / RENDER_SCALE;
+        pageWidth = result.viewport.width / RENDER_SCALE;
+        pageHeight = result.viewport.height / RENDER_SCALE;
       }
 
       flipbookEl.appendChild(result.pageDiv);
@@ -567,14 +579,10 @@ async function initFlipbook() {
       document.querySelectorAll('.page')
     );
 
-    lastPlayedIndex =
-      pageFlip.getCurrentPageIndex();
+    lastPlayedIndex = pageFlip.getCurrentPageIndex();
 
     pageFlip.on('flip', handlePageChange);
-    pageFlip.on(
-      'changeState',
-      handleChangeState
-    );
+    pageFlip.on('changeState', updateNavigationIndicator);
 
     updateNavigationIndicator();
     bindControls();
