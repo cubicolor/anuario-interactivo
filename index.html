@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  <meta name="theme-color" content="#141414">
+  <title>Anuario Interactivo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="loader-text">Cargando anuario... 0%</p>
+  </div>
+
+  <main class="stage" id="stage" aria-label="Visor del anuario">
+    <div id="zoom-wrapper" class="zoom-wrapper">
+      <div id="flipbook"></div>
+    </div>
+  </main>
+
+  <nav class="controls" aria-label="Controles del anuario">
+    <div class="control-group">
+      <button
+        id="btn-prev"
+        type="button"
+        title="Página anterior"
+        aria-label="Página anterior"
+      >
+        &#8592;
+      </button>
+
+      <div class="page-search">
+        <label for="page-input">Pág.</label>
+        <input
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          id="page-input"
+          value="-"
+          autocomplete="off"
+          aria-describedby="total-pages"
+          title="Escribe un número de página y presiona Enter"
+        >
+        <span id="total-pages">de -</span>
+      </div>
+
+      <button
+        id="btn-next"
+        type="button"
+        title="Página siguiente"
+        aria-label="Página siguiente"
+      >
+        &#8594;
+      </button>
+    </div>
+
+    <div class="divider" aria-hidden="true"></div>
+
+    <div class="control-group">
+      <button
+        id="btn-zoom-out"
+        type="button"
+        title="Alejar"
+        aria-label="Alejar"
+      >
+        &#8722;
+      </button>
+
+      <span id="zoom-indicator" aria-live="polite">100%</span>
+
+      <button
+        id="btn-zoom-in"
+        type="button"
+        title="Acercar"
+        aria-label="Acercar"
+      >
+        &#43;
+      </button>
+
+      <button
+        id="btn-zoom-reset"
+        type="button"
+        title="Restablecer zoom"
+      >
+        Ajustar
+      </button>
+    </div>
+  </nav>
+
+  <audio id="page-turn-sound" preload="auto">
+    <source src="assets/page-flip.mp3" type="audio/mpeg">
+    <source src="assets/page-flip.ogg" type="audio/ogg">
+  </audio>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
