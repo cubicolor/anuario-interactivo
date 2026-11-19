@@ -2,7 +2,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const PDF_URL =
-  'https://huggingface.co/datasets/TU_USUARIO/TU_DATASET/resolve/main/anuario.pdf';
+  'https://huggingface.co/datasets/CubiColor/anuario-2026/resolve/main/anuario.pdf';
 
 const SOUND_URL = 'assets/page-flip.mp3';
 const RENDER_SCALE = 2.2;
