@@ -101,32 +101,13 @@ input {
   cursor: grab;
 }
 
+/* Evita que el libro capture el arrastre usado para mover el zoom. */
 .zoom-wrapper.zoomed #flipbook {
   pointer-events: none;
 }
 
 #flipbook {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
-  transform-origin: center;
-  transition: opacity 180ms ease-out;
-}
-
-#flipbook.page-turning {
-  opacity: 0.72;
-}
-
-#flipbook.page-fade-in {
-  animation: spreadFadeIn 380ms ease-out both;
-}
-
-@keyframes spreadFadeIn {
-  from {
-    opacity: 0.55;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 .page {
@@ -141,12 +122,14 @@ input {
   height: 100%;
 }
 
+/* Apariencia de tapa rígida para portada y contraportada. */
 .page.cover-front,
 .page.cover-back {
   isolation: isolate;
   background: #222;
 }
 
+/* Relieve sutil alrededor de las tapas. */
 .page.cover-front::after,
 .page.cover-back::after {
   content: "";
@@ -159,6 +142,7 @@ input {
     inset 0 0 12px rgba(0, 0, 0, 0.14);
 }
 
+/* Lomo de la tapa delantera. */
 .page.cover-front::before {
   content: "";
   position: absolute;
@@ -176,6 +160,7 @@ input {
   border-right: 1px solid rgba(0, 0, 0, 0.2);
 }
 
+/* Lomo invertido para la tapa trasera. */
 .page.cover-back::before {
   content: "";
   position: absolute;
@@ -338,10 +323,5 @@ input {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-
-  #flipbook.page-turning,
-  #flipbook.page-fade-in {
-    opacity: 1;
   }
 }
