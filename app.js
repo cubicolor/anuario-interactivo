@@ -2,7 +2,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const PDF_URL =
-  '/anuario.pdf';
+  'https://huggingface.co/datasets/TU_USUARIO/TU_DATASET/resolve/main/anuario.pdf';
+
 const SOUND_URL = 'assets/page-flip.mp3';
 const RENDER_SCALE = 2.2;
 const PAGE_OFFSET = 2;
@@ -68,27 +69,21 @@ async function loadPageTurnSound() {
       );
     }
 
-    const encodedAudio =
-      await response.arrayBuffer();
+    const encodedAudio = await response.arrayBuffer();
 
-    const AudioContext =
-      window.AudioContext ||
-      window.webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
 
-    if (!AudioContext) {
-      throw new Error(
-        'Este navegador no admite Web Audio.'
-      );
+    if (!AudioContextClass) {
+      throw new Error('Este navegador no admite Web Audio.');
     }
 
     if (!audioContext) {
-      audioContext = new AudioContext();
+      audioContext = new AudioContextClass();
     }
 
     pageTurnBuffer =
-      await audioContext.decodeAudioData(
-        encodedAudio
-      );
+      await audioContext.decodeAudioData(encodedAudio);
 
     return pageTurnBuffer;
   })();
@@ -104,15 +99,14 @@ async function loadPageTurnSound() {
 async function unlockPageTurnSound() {
   try {
     if (!audioContext) {
-      const AudioContext =
-        window.AudioContext ||
-        window.webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
 
-      if (!AudioContext) {
+      if (!AudioContextClass) {
         return;
       }
 
-      audioContext = new AudioContext();
+      audioContext = new AudioContextClass();
     }
 
     if (audioContext.state === 'suspended') {
@@ -121,23 +115,13 @@ async function unlockPageTurnSound() {
 
     await loadPageTurnSound();
   } catch (error) {
-    console.warn(
-      'No se pudo preparar el sonido:',
-      error
-    );
+    console.warn('No se pudo preparar el sonido:', error);
   }
 }
 
 async function playPageTurnSound() {
   try {
-    if (!audioContext) {
-      await unlockPageTurnSound();
-    }
-
-    if (
-      !audioContext ||
-      audioContext.state === 'suspended'
-    ) {
+    if (!audioContext || audioContext.state === 'suspended') {
       await unlockPageTurnSound();
     }
 
@@ -145,31 +129,26 @@ async function playPageTurnSound() {
       await loadPageTurnSound();
     }
 
-    if (!pageTurnBuffer) {
+    if (!audioContext || !pageTurnBuffer) {
       return;
     }
 
     if (currentAudioSource) {
       try {
         currentAudioSource.stop();
-      } catch (error) {
+      } catch {
         // La reproducción anterior ya terminó.
       }
     }
 
-    const source =
-      audioContext.createBufferSource();
-
-    const gain =
-      audioContext.createGain();
+    const source = audioContext.createBufferSource();
+    const gain = audioContext.createGain();
 
     source.buffer = pageTurnBuffer;
     gain.gain.value = PAGE_TURN_VOLUME;
 
     source.connect(gain);
-    gain.connect(
-      audioContext.destination
-    );
+    gain.connect(audioContext.destination);
 
     currentAudioSource = source;
 
@@ -181,10 +160,7 @@ async function playPageTurnSound() {
 
     source.start(0);
   } catch (error) {
-    console.warn(
-      'No se pudo reproducir el sonido:',
-      error
-    );
+    console.warn('No se pudo reproducir el sonido:', error);
   }
 }
 
@@ -208,31 +184,19 @@ loadPageTurnSound().catch(error => {
 });
 
 function constrainPan() {
-  if (
-    !bookDimensions ||
-    currentZoom <= MIN_ZOOM
-  ) {
+  if (!bookDimensions || currentZoom <= MIN_ZOOM) {
     panX = 0;
     panY = 0;
     return;
   }
 
-  const stageRect =
-    stageEl.getBoundingClientRect();
+  const stageRect = stageEl.getBoundingClientRect();
 
   const extraWidth =
-    (
-      bookDimensions.width *
-      currentZoom -
-      stageRect.width
-    ) / 2;
+    (bookDimensions.width * currentZoom - stageRect.width) / 2;
 
   const extraHeight =
-    (
-      bookDimensions.height *
-      currentZoom -
-      stageRect.height
-    ) / 2;
+    (bookDimensions.height * currentZoom - stageRect.height) / 2;
 
   panX = clamp(
     panX,
@@ -259,11 +223,8 @@ function applyZoomTransform() {
   zoomIndicatorEl.textContent =
     `${Math.round(currentZoom * 100)}%`;
 
-  btnZoomOut.disabled =
-    currentZoom <= MIN_ZOOM;
-
-  btnZoomIn.disabled =
-    currentZoom >= MAX_ZOOM;
+  btnZoomOut.disabled = currentZoom <= MIN_ZOOM;
+  btnZoomIn.disabled = currentZoom >= MAX_ZOOM;
 }
 
 function setZoom(newZoom) {
@@ -282,61 +243,32 @@ function setZoom(newZoom) {
   applyZoomTransform();
 }
 
-async function renderPdfPage(
-  pdf,
-  pageNumber
-) {
-  const page =
-    await pdf.getPage(pageNumber);
+async function renderPdfPage(pdf, pageNumber) {
+  const page = await pdf.getPage(pageNumber);
 
-  const viewport =
-    page.getViewport({
-      scale: RENDER_SCALE
-    });
+  const viewport = page.getViewport({
+    scale: RENDER_SCALE
+  });
 
-  const pageDiv =
-    document.createElement('div');
-
+  const pageDiv = document.createElement('div');
   pageDiv.className = 'page';
 
   if (pageNumber === 1) {
     pageDiv.dataset.density = 'hard';
-    pageDiv.classList.add(
-      'cover-front'
-    );
-  } else if (
-    pageNumber === pdf.numPages
-  ) {
+    pageDiv.classList.add('cover-front');
+  } else if (pageNumber === pdf.numPages) {
     pageDiv.dataset.density = 'hard';
-    pageDiv.classList.add(
-      'cover-back'
-    );
+    pageDiv.classList.add('cover-back');
   }
 
-  const canvas =
-    document.createElement('canvas');
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { alpha: false });
 
-  const context =
-    canvas.getContext(
-      '2d',
-      { alpha: false }
-    );
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
 
-  canvas.width =
-    viewport.width;
-
-  canvas.height =
-    viewport.height;
-
-  canvas.setAttribute(
-    'role',
-    'img'
-  );
-
-  canvas.setAttribute(
-    'aria-label',
-    `Página ${pageNumber}`
-  );
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', `Página ${pageNumber}`);
 
   await page.render({
     canvasContext: context,
@@ -351,43 +283,22 @@ async function renderPdfPage(
   };
 }
 
-function calculateBookDimensions(
-  pageWidth,
-  pageHeight
-) {
-  const stageRect =
-    stageEl.getBoundingClientRect();
+function calculateBookDimensions(pageWidth, pageHeight) {
+  const stageRect = stageEl.getBoundingClientRect();
+  const aspectRatio = pageWidth / pageHeight;
 
-  const aspectRatio =
-    pageWidth / pageHeight;
+  const availableHeight = Math.max(180, stageRect.height - 32);
+  const availablePageWidth = Math.max(
+    140,
+    (stageRect.width - 40) / 2
+  );
 
-  const availableHeight =
-    Math.max(
-      180,
-      stageRect.height - 32
-    );
+  let height = availableHeight;
+  let width = height * aspectRatio;
 
-  const availablePageWidth =
-    Math.max(
-      140,
-      (stageRect.width - 40) / 2
-    );
-
-  let height =
-    availableHeight;
-
-  let width =
-    height * aspectRatio;
-
-  if (
-    width >
-    availablePageWidth
-  ) {
-    width =
-      availablePageWidth;
-
-    height =
-      width / aspectRatio;
+  if (width > availablePageWidth) {
+    width = availablePageWidth;
+    height = width / aspectRatio;
   }
 
   return {
@@ -401,26 +312,16 @@ function updateNavigationIndicator() {
     return;
   }
 
-  const currentPdfIndex =
-    pageFlip.getCurrentPageIndex();
-
-  const currentPdfPage =
-    currentPdfIndex + 1;
-
-  const editorialPage =
-    currentPdfPage - PAGE_OFFSET;
+  const currentPdfIndex = pageFlip.getCurrentPageIndex();
+  const currentPdfPage = currentPdfIndex + 1;
+  const editorialPage = currentPdfPage - PAGE_OFFSET;
 
   pageInputEl.value =
-    editorialPage >= 1
-      ? String(editorialPage)
-      : '-';
+    editorialPage >= 1 ? String(editorialPage) : '-';
 
-  btnPrev.disabled =
-    currentPdfIndex <= 0;
-
+  btnPrev.disabled = currentPdfIndex <= 0;
   btnNext.disabled =
-    currentPdfIndex >=
-    pageFlip.getPageCount() - 1;
+    currentPdfIndex >= pageFlip.getPageCount() - 1;
 }
 
 function handlePageChange() {
@@ -428,16 +329,10 @@ function handlePageChange() {
     return;
   }
 
-  const currentIndex =
-    pageFlip.getCurrentPageIndex();
+  const currentIndex = pageFlip.getCurrentPageIndex();
 
-  if (
-    currentIndex !==
-    lastPlayedIndex
-  ) {
-    lastPlayedIndex =
-      currentIndex;
-
+  if (currentIndex !== lastPlayedIndex) {
+    lastPlayedIndex = currentIndex;
     playPageTurnSound();
   }
 
@@ -449,447 +344,265 @@ function goToEditorialPage() {
     return;
   }
 
-  const requestedPage =
-    Number.parseInt(
-      pageInputEl.value.trim(),
-      10
-    );
+  const requestedPage = Number.parseInt(
+    pageInputEl.value.trim(),
+    10
+  );
 
-  if (
-    !Number.isInteger(
-      requestedPage
-    )
-  ) {
+  if (!Number.isInteger(requestedPage)) {
     updateNavigationIndicator();
     return;
   }
 
-  const totalBookPages =
-    Math.max(
-      1,
-      pageFlip.getPageCount() -
-      PAGE_OFFSET
-    );
-
-  const editorialPage =
-    clamp(
-      requestedPage,
-      1,
-      totalBookPages
-    );
-
-  const targetPdfIndex =
-    editorialPage +
-    PAGE_OFFSET -
-    1;
-
-  setZoom(MIN_ZOOM);
-
-  pageFlip.turnToPage(
-    targetPdfIndex
+  const totalBookPages = Math.max(
+    1,
+    pageFlip.getPageCount() - PAGE_OFFSET
   );
 
-  pageInputEl.value =
-    String(editorialPage);
+  const editorialPage = clamp(
+    requestedPage,
+    1,
+    totalBookPages
+  );
+
+  const targetPdfIndex =
+    editorialPage + PAGE_OFFSET - 1;
+
+  setZoom(MIN_ZOOM);
+  pageFlip.turnToPage(targetPdfIndex);
+  pageInputEl.value = String(editorialPage);
 }
 
 function bindControls() {
-  pageInputEl.addEventListener(
-    'focus',
-    () => {
-      pageInputEl.select();
-    }
-  );
+  pageInputEl.addEventListener('focus', () => {
+    pageInputEl.select();
+  });
 
-  pageInputEl.addEventListener(
-    'keydown',
-    event => {
-      if (
-        event.key === 'Enter'
-      ) {
-        goToEditorialPage();
-        pageInputEl.blur();
-      }
+  pageInputEl.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      goToEditorialPage();
+      pageInputEl.blur();
     }
-  );
+  });
 
   pageInputEl.addEventListener(
     'change',
     goToEditorialPage
   );
 
-  btnPrev.addEventListener(
-    'click',
-    () => {
-      if (
-        btnPrev.disabled
-      ) {
-        return;
-      }
+  btnPrev.addEventListener('click', () => {
+    if (btnPrev.disabled) {
+      return;
+    }
 
+    setZoom(MIN_ZOOM);
+    pageFlip.flipPrev();
+  });
+
+  btnNext.addEventListener('click', () => {
+    if (btnNext.disabled) {
+      return;
+    }
+
+    setZoom(MIN_ZOOM);
+    pageFlip.flipNext();
+  });
+
+  btnZoomIn.addEventListener('click', () => {
+    setZoom(currentZoom + ZOOM_STEP);
+  });
+
+  btnZoomOut.addEventListener('click', () => {
+    setZoom(currentZoom - ZOOM_STEP);
+  });
+
+  btnZoomReset.addEventListener('click', () => {
+    setZoom(MIN_ZOOM);
+  });
+
+  document.addEventListener('keydown', event => {
+    if (document.activeElement === pageInputEl) {
+      return;
+    }
+
+    if (event.key === 'ArrowLeft' && !btnPrev.disabled) {
       setZoom(MIN_ZOOM);
       pageFlip.flipPrev();
-    }
-  );
-
-  btnNext.addEventListener(
-    'click',
-    () => {
-      if (
-        btnNext.disabled
-      ) {
-        return;
-      }
-
+    } else if (
+      event.key === 'ArrowRight' &&
+      !btnNext.disabled
+    ) {
       setZoom(MIN_ZOOM);
       pageFlip.flipNext();
-    }
-  );
-
-  btnZoomIn.addEventListener(
-    'click',
-    () => {
-      setZoom(
-        currentZoom +
-        ZOOM_STEP
-      );
-    }
-  );
-
-  btnZoomOut.addEventListener(
-    'click',
-    () => {
-      setZoom(
-        currentZoom -
-        ZOOM_STEP
-      );
-    }
-  );
-
-  btnZoomReset.addEventListener(
-    'click',
-    () => {
+    } else if (event.key === '+' || event.key === '=') {
+      setZoom(currentZoom + ZOOM_STEP);
+    } else if (event.key === '-') {
+      setZoom(currentZoom - ZOOM_STEP);
+    } else if (event.key === '0' || event.key === 'Escape') {
       setZoom(MIN_ZOOM);
     }
-  );
-
-  document.addEventListener(
-    'keydown',
-    event => {
-      if (
-        document.activeElement ===
-        pageInputEl
-      ) {
-        return;
-      }
-
-      if (
-        event.key === 'ArrowLeft' &&
-        !btnPrev.disabled
-      ) {
-        setZoom(MIN_ZOOM);
-        pageFlip.flipPrev();
-      } else if (
-        event.key === 'ArrowRight' &&
-        !btnNext.disabled
-      ) {
-        setZoom(MIN_ZOOM);
-        pageFlip.flipNext();
-      } else if (
-        event.key === '+' ||
-        event.key === '='
-      ) {
-        setZoom(
-          currentZoom +
-          ZOOM_STEP
-        );
-      } else if (
-        event.key === '-'
-      ) {
-        setZoom(
-          currentZoom -
-          ZOOM_STEP
-        );
-      } else if (
-        event.key === '0' ||
-        event.key === 'Escape'
-      ) {
-        setZoom(MIN_ZOOM);
-      }
-    }
-  );
+  });
 
   stageEl.addEventListener(
     'wheel',
     event => {
       event.preventDefault();
 
-      const direction =
-        event.deltaY < 0
-          ? 1
-          : -1;
-
-      setZoom(
-        currentZoom +
-        direction *
-        ZOOM_STEP
-      );
+      const direction = event.deltaY < 0 ? 1 : -1;
+      setZoom(currentZoom + direction * ZOOM_STEP);
     },
     { passive: false }
   );
 
-  stageEl.addEventListener(
-    'pointerdown',
-    event => {
-      if (
-        currentZoom <=
-        MIN_ZOOM
-      ) {
-        return;
-      }
-
-      isDragging = true;
-
-      dragStartX =
-        event.clientX -
-        panX;
-
-      dragStartY =
-        event.clientY -
-        panY;
-
-      zoomWrapperEl.classList.add(
-        'dragging'
-      );
-
-      if (
-        stageEl.setPointerCapture
-      ) {
-        stageEl.setPointerCapture(
-          event.pointerId
-        );
-      }
+  stageEl.addEventListener('pointerdown', event => {
+    if (currentZoom <= MIN_ZOOM) {
+      return;
     }
-  );
 
-  stageEl.addEventListener(
-    'pointermove',
-    event => {
-      if (!isDragging) {
-        return;
-      }
+    isDragging = true;
+    dragStartX = event.clientX - panX;
+    dragStartY = event.clientY - panY;
 
-      panX =
-        event.clientX -
-        dragStartX;
+    zoomWrapperEl.classList.add('dragging');
 
-      panY =
-        event.clientY -
-        dragStartY;
-
-      constrainPan();
-      applyZoomTransform();
+    if (stageEl.setPointerCapture) {
+      stageEl.setPointerCapture(event.pointerId);
     }
-  );
+  });
 
-  function stopDragging(
-    event
-  ) {
+  stageEl.addEventListener('pointermove', event => {
+    if (!isDragging) {
+      return;
+    }
+
+    panX = event.clientX - dragStartX;
+    panY = event.clientY - dragStartY;
+
+    constrainPan();
+    applyZoomTransform();
+  });
+
+  function stopDragging(event) {
     if (!isDragging) {
       return;
     }
 
     isDragging = false;
-
-    zoomWrapperEl.classList.remove(
-      'dragging'
-    );
+    zoomWrapperEl.classList.remove('dragging');
 
     if (
       stageEl.releasePointerCapture &&
-      stageEl.hasPointerCapture &&
-      stageEl.hasPointerCapture(
-        event.pointerId
-      )
+      stageEl.hasPointerCapture?.(event.pointerId)
     ) {
-      stageEl.releasePointerCapture(
-        event.pointerId
-      );
+      stageEl.releasePointerCapture(event.pointerId);
     }
   }
 
-  stageEl.addEventListener(
-    'pointerup',
-    stopDragging
-  );
-
-  stageEl.addEventListener(
-    'pointercancel',
-    stopDragging
-  );
+  stageEl.addEventListener('pointerup', stopDragging);
+  stageEl.addEventListener('pointercancel', stopDragging);
 }
 
 async function initFlipbook() {
   try {
-    loaderTextEl.textContent =
-      'Descargando anuario...';
+    loaderTextEl.textContent = 'Descargando anuario...';
 
-    const pdf =
-      await pdfjsLib.getDocument({
-        url: PDF_URL,
-        cMapUrl:
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-        cMapPacked: true,
-        disableAutoFetch: false,
-        disableStream: false,
-        disableRange: false
-      }).promise;
+    const pdf = await pdfjsLib.getDocument({
+      url: PDF_URL,
+      cMapUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true,
+      disableAutoFetch: false,
+      disableStream: false,
+      disableRange: false,
+      rangeChunkSize: 65536
+    }).promise;
 
-    const totalPdfPages =
-      pdf.numPages;
+    const totalPdfPages = pdf.numPages;
 
-    if (
-      totalPdfPages === 0
-    ) {
-      throw new Error(
-        'El PDF no contiene páginas.'
-      );
+    if (totalPdfPages === 0) {
+      throw new Error('El PDF no contiene páginas.');
     }
 
-    const totalBookPages =
-      Math.max(
-        1,
-        totalPdfPages -
-        PAGE_OFFSET
-      );
+    const totalBookPages = Math.max(
+      1,
+      totalPdfPages - PAGE_OFFSET
+    );
 
-    totalPagesEl.textContent =
-      `de ${totalBookPages}`;
+    totalPagesEl.textContent = `de ${totalBookPages}`;
 
-    let pageWidth =
-      400;
-
-    let pageHeight =
-      560;
+    let pageWidth = 400;
+    let pageHeight = 560;
 
     for (
       let pageNumber = 1;
-      pageNumber <=
-      totalPdfPages;
+      pageNumber <= totalPdfPages;
       pageNumber++
     ) {
-      const result =
-        await renderPdfPage(
-          pdf,
-          pageNumber
-        );
+      const result = await renderPdfPage(pdf, pageNumber);
 
-      if (
-        pageNumber === 1
-      ) {
-        pageWidth =
-          result.viewport.width /
-          RENDER_SCALE;
-
-        pageHeight =
-          result.viewport.height /
-          RENDER_SCALE;
+      if (pageNumber === 1) {
+        pageWidth = result.viewport.width / RENDER_SCALE;
+        pageHeight = result.viewport.height / RENDER_SCALE;
       }
 
-      flipbookEl.appendChild(
-        result.pageDiv
-      );
+      flipbookEl.appendChild(result.pageDiv);
 
-      const percent =
-        Math.round(
-          (
-            pageNumber /
-            totalPdfPages
-          ) * 100
-        );
+      const percent = Math.round(
+        (pageNumber / totalPdfPages) * 100
+      );
 
       loaderTextEl.textContent =
         `Cargando anuario... ${percent}%`;
     }
 
-    bookDimensions =
-      calculateBookDimensions(
-        pageWidth,
-        pageHeight
-      );
+    bookDimensions = calculateBookDimensions(
+      pageWidth,
+      pageHeight
+    );
 
-    pageFlip =
-      new St.PageFlip(
-        flipbookEl,
-        {
-          width:
-            bookDimensions.width,
-          height:
-            bookDimensions.height,
-          size: 'fixed',
-          minWidth: 280,
-          minHeight: 400,
-          maxWidth: 1600,
-          maxHeight: 2200,
-          maxShadowOpacity: 0.5,
-          showCover: true,
-          mobileScrollSupport: false,
-          useMouseEvents: true,
-          startZIndex: 10
-        }
-      );
+    pageFlip = new St.PageFlip(flipbookEl, {
+      width: bookDimensions.width,
+      height: bookDimensions.height,
+      size: 'fixed',
+      minWidth: 280,
+      minHeight: 400,
+      maxWidth: 1600,
+      maxHeight: 2200,
+      maxShadowOpacity: 0.5,
+      showCover: true,
+      mobileScrollSupport: false,
+      useMouseEvents: true,
+      startZIndex: 10
+    });
 
     pageFlip.loadFromHTML(
-      document.querySelectorAll(
-        '.page'
-      )
+      document.querySelectorAll('.page')
     );
 
-    lastPlayedIndex =
-      pageFlip.getCurrentPageIndex();
+    lastPlayedIndex = pageFlip.getCurrentPageIndex();
 
-    pageFlip.on(
-      'flip',
-      handlePageChange
-    );
-
-    pageFlip.on(
-      'changeState',
-      updateNavigationIndicator
-    );
+    pageFlip.on('flip', handlePageChange);
+    pageFlip.on('changeState', updateNavigationIndicator);
 
     updateNavigationIndicator();
     bindControls();
 
-    window.addEventListener(
-      'resize',
-      () => {
-        clearTimeout(
-          resizeTimer
-        );
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
 
-        resizeTimer =
-          setTimeout(() => {
-            constrainPan();
-            applyZoomTransform();
-          }, 180);
-      }
-    );
+      resizeTimer = setTimeout(() => {
+        constrainPan();
+        applyZoomTransform();
+      }, 180);
+    });
 
     applyZoomTransform();
-
-    loaderEl.classList.add(
-      'hidden'
-    );
-
+    loaderEl.classList.add('hidden');
   } catch (error) {
-    console.error(
-      'Error al cargar el PDF:',
-      error
-    );
+    console.error('Error al cargar el PDF:', error);
 
     loaderTextEl.textContent =
-      'No se pudo cargar el anuario. Comprueba la URL de GitHub y la conexión.';
+      'No se pudo cargar el anuario. Comprueba la URL pública del PDF y la conexión.';
   }
 }
 
