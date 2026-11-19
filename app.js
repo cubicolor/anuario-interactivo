@@ -1,8 +1,9 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const PDF_URL =
-  'https://github.com/cubicolor/anuario-interactivo/releases/download/v1.0.0/anuario.pdf';
+// Served same-origin via the edge function in netlify/edge-functions/anuario-pdf.js
+// (GitHub release downloads don't allow cross-origin fetches).
+const PDF_URL = '/anuario.pdf';
 
 const SOUND_URL = 'assets/page-flip.mp3';
 const RENDER_SCALE = 2.2;
@@ -890,7 +891,7 @@ async function initFlipbook() {
     );
 
     loaderTextEl.textContent =
-      'No se pudo cargar el anuario. Comprueba la URL de GitHub y la conexión.';
+      'No se pudo cargar el anuario. Comprueba tu conexión e inténtalo de nuevo.';
   }
 }
 
