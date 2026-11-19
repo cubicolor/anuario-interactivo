@@ -2,8 +2,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const PDF_URL =
-  'https://github.com/cubicolor/anuario-interactivo/releases/download/v1.0.0/anuario.pdf';
-
+  '/anuario.pdf';
 const SOUND_URL = 'assets/page-flip.mp3';
 const RENDER_SCALE = 2.2;
 const PAGE_OFFSET = 2;
