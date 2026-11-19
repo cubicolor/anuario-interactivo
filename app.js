@@ -5,7 +5,8 @@ const PDF_URL =
   'https://huggingface.co/datasets/CubiColor/anuario-2026/resolve/main/anuario.pdf';
 
 const SOUND_URL = 'assets/page-flip.mp3';
-const RENDER_SCALE = 2.2;
+const IS_MOBILE = window.matchMedia('(max-width: 700px)').matches;
+const RENDER_SCALE = IS_MOBILE ? 1.1 : 1.8;
 const PAGE_OFFSET = 2;
 
 const MIN_ZOOM = 1;
