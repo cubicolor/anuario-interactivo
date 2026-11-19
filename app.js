@@ -9,7 +9,7 @@ const RENDER_SCALE = 2.2;
 const PAGE_OFFSET = 2;
 
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 2.8;
+const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.3;
 const PAGE_TURN_VOLUME = 0.45;
 
@@ -192,11 +192,19 @@ function constrainPan() {
 
   const stageRect = stageEl.getBoundingClientRect();
 
+  // Usa el tamaño real del libro abierto (dos páginas), no el ancho
+  // de una sola página. offsetWidth/offsetHeight no incluyen el zoom.
+  const contentWidth =
+    zoomWrapperEl.offsetWidth || flipbookEl.offsetWidth;
+
+  const contentHeight =
+    zoomWrapperEl.offsetHeight || flipbookEl.offsetHeight;
+
   const extraWidth =
-    (bookDimensions.width * currentZoom - stageRect.width) / 2;
+    (contentWidth * currentZoom - stageRect.width) / 2;
 
   const extraHeight =
-    (bookDimensions.height * currentZoom - stageRect.height) / 2;
+    (contentHeight * currentZoom - stageRect.height) / 2;
 
   panX = clamp(
     panX,
@@ -570,9 +578,11 @@ async function initFlipbook() {
       maxHeight: 2200,
       maxShadowOpacity: 0.5,
       showCover: true,
+      usePortrait: false,
       mobileScrollSupport: false,
       useMouseEvents: true,
-      startZIndex: 10
+      startZIndex: 10,
+      startPage: 0
     });
 
     pageFlip.loadFromHTML(
